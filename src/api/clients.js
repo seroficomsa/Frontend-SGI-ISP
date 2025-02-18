@@ -15,7 +15,7 @@ export const obtenerClientes = async (token) => {
         throw new Error(error.response?.data?.message || "Error al obtener clientes.");
     }
 };
-// Oobtener informacion
+// Oobtener
 export const obtenerInformacionCliente = async (id, token) => {
     try {
         const response = await axios.get(`${API_URL}/clientes/${id}`, {
