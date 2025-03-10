@@ -24,6 +24,7 @@ export default function Navbar({ setCollapsed, collapsed }) {
   const handleLogout = () => {
     logout();
   };
+  // comentario
 
   const dropdownMenu = (
     <Menu
