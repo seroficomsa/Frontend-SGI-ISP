@@ -56,6 +56,12 @@ export default function Sidebar({ collapsed, setCollapsed, isMobile }) {
         { key: "/admin/inventarios/onts", label: "ONTs", icon: "DatabaseOutlined", path: "/admin/inventarios/onts" },
       ],
     },
+    {
+      key: "monitoreo",
+      label: "Monitoreo",
+      icon: "EyeOutlined", // También puedes probar "MonitorOutlined" o "EyeOutlined"
+      path: "/admin/monitoreo",
+    },
   ];
 
   const handleMenuClick = ({ key }) => {

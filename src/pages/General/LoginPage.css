@@ -1,0 +1,75 @@
+/* Estilos generales */
+.version-text {
+    text-align: center;
+    font-weight: bold;
+    opacity: 0.7;
+    margin-top: 10px;
+  }
+
+  
+
+  /* ======= MEJORA DE ALERTAS ======= */
+.ant-alert {
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px;
+    border: 2px solid #ff4d4f;
+    background-color: transparent !important;
+    color: #ff4d4f !important;
+  }
+  
+  .ant-alert-error .ant-alert-message {
+    font-weight: bold;
+  }
+  
+  /* Mejora en los inputs para móviles */
+  .ant-input,
+  .ant-input-password {
+    width: 100%;
+    /* max-width: 400px; */
+    /* height: 48px; */
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    transition: border 0.3s ease-in-out;
+  }
+
+  /* Mejora en los mensajes de alerta */
+  .ant-alert {
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px;
+  }
+  
+  .ant-alert-error {
+    background-color: rgba(255, 77, 79, 0.1);
+    border: 2px solid #ff4d4f;
+  }
+  
+
+
+  :where(.css-dev-only-do-not-override-1htoz2s).ant-input-outlined:focus-within {
+    border-color: #ff4d4f;
+    box-shadow: none;
+  }
+
+  :where(.css-dev-only-do-not-override-1htoz2s).ant-input-outlined:focus-within {
+    border-color: #ff4d4f;
+    box-shadow: none;
+  }
+
+  :where(.css-dev-only-do-not-override-1htoz2s).ant-input-outlined:hover {
+    border-color: #ff4d4f;
+    box-shadow: none;
+  }
+
+  /* ✅ Estilo para la versión */
+.version-text {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.5); /* Negro con transparencia */
+    margin-top: 15px;
+  }
+  

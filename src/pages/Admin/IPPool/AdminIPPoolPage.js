@@ -21,6 +21,7 @@ import {
   SyncOutlined,
   SearchOutlined,
   ToolOutlined,
+  CloudDownloadOutlined,
 } from "@ant-design/icons";
 import useAuth from "../../../hooks/useAuth";
 import {
@@ -29,6 +30,8 @@ import {
   actualizarIPPool,
   eliminarIPPool,
   repararIPPool,
+  verificarIPPoolsEnMikrotik,
+  importarIPPools,
 } from "../../../api/ippools";
 import { obtenerRouters } from "../../../api/routers";
 
@@ -40,9 +43,12 @@ export default function AdminIPPoolsPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Modal de confirmación para eliminar
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingIPPool, setEditingIPPool] = useState(null);
-  const [deletingIPPool, setDeletingIPPool] = useState(null); // IP Pool a eliminar
+  const [deletingIPPool, setDeletingIPPool] = useState(null);
+  const [poolsNoRegistrados, setPoolsNoRegistrados] = useState([]);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [loadingImport, setLoadingImport] = useState(false);
   const [form] = Form.useForm();
   const { user } = useAuth();
 
@@ -51,6 +57,11 @@ export default function AdminIPPoolsPage() {
     setLoading(true);
     try {
       const token = user?.access_token;
+
+      // Verificar los pools no registrados en MikroTik
+      await verificarPoolsNoRegistrados();
+
+      // Obtener la lista de IP Pools
       const response = await listarIPPools(token);
       if (response?.success && Array.isArray(response.data)) {
         setIPPools(response.data);
@@ -83,18 +94,52 @@ export default function AdminIPPoolsPage() {
     }
   };
 
-  // 3. Efecto inicial
+  // 3. Verificar IP Pools no registrados en MikroTik
+  const verificarPoolsNoRegistrados = async () => {
+    try {
+      const token = user?.access_token;
+      const response = await verificarIPPoolsEnMikrotik(token);
+      if (response?.success && Array.isArray(response.data)) {
+        setPoolsNoRegistrados(response.data);
+      }
+    } catch (error) {
+      console.error("Error al verificar pools no registrados:", error);
+    }
+  };
+
+  // 4. Importar IP Pools no registrados
+  const handleImportIPPools = async () => {
+    setLoadingImport(true);
+    try {
+      const token = user?.access_token;
+      const response = await importarIPPools(token);
+      if (response?.success) {
+        message.success("Importación completada.");
+        setPoolsNoRegistrados([]);
+        fetchIPPools();
+      } else {
+        message.error("No se pudo importar los IP Pools.");
+      }
+    } catch (error) {
+      message.error("Error en la importación.");
+    } finally {
+      setLoadingImport(false);
+      setIsImportModalOpen(false);
+    }
+  };
+
+  // 5. Efecto inicial
   useEffect(() => {
     fetchIPPools();
     fetchRouters();
   }, []);
 
-  // 4. Manejo de búsqueda
+  // 6. Manejo de búsqueda
   const handleSearch = (e) => {
     setSearch(e.target.value.toLowerCase());
   };
 
-  // 5. Crear o actualizar IP Pool
+  // 7. Crear o actualizar IP Pool
   const handleCreateOrUpdate = async (values) => {
     try {
       const token = user?.access_token;
@@ -116,7 +161,7 @@ export default function AdminIPPoolsPage() {
     }
   };
 
-  // 6. Eliminar IP Pool
+  // 8. Eliminar IP Pool
   const handleDelete = async () => {
     if (!deletingIPPool) return;
 
@@ -124,7 +169,7 @@ export default function AdminIPPoolsPage() {
       const token = user?.access_token;
       await eliminarIPPool(token, deletingIPPool.id_ippool);
       message.success("IP Pool desactivado exitosamente.");
-      setIsDeleteModalOpen(false); // Cerrar el modal de confirmación
+      setIsDeleteModalOpen(false);
       fetchIPPools();
     } catch (error) {
       console.error("Error al eliminar el IP Pool:", error);
@@ -132,7 +177,7 @@ export default function AdminIPPoolsPage() {
     }
   };
 
-  // 7. Reparar un solo IP Pool
+  // 9. Reparar un solo IP Pool
   const handleRepair = async (id) => {
     try {
       const token = user?.access_token;
@@ -145,7 +190,7 @@ export default function AdminIPPoolsPage() {
     }
   };
 
-  // 7.bis Reparación Masiva
+  // 10. Reparación Masiva
   const handleRepairAll = async () => {
     setLoading(true);
     try {
@@ -154,7 +199,6 @@ export default function AdminIPPoolsPage() {
         await repararIPPool(token, pool.id_ippool);
         message.success(`IP Pool '${pool.nombre_pool}' reparado exitosamente.`);
       }
-      // Al terminar, recargamos la lista
       fetchIPPools();
     } catch (error) {
       console.error("Error en reparación masiva:", error);
@@ -164,19 +208,19 @@ export default function AdminIPPoolsPage() {
     }
   };
 
-  // 8. Pools con estado "No Existe"
+  // 11. Pools con estado "No Existe"
   const noExistePools = ippools.filter(
     (pool) => pool.estado_mikrotik === "No Existe"
   );
 
-  // 9. Filtrado para la tabla
+  // 12. Filtrado para la tabla
   const filteredIPPools = ippools.filter(
     (pool) =>
       pool.nombre_pool.toLowerCase().includes(search) ||
       pool.router?.nombre_router?.toLowerCase().includes(search)
   );
 
-  // 10. Columnas de la tabla
+  // 13. Columnas de la tabla
   const columns = [
     {
       title: "Nombre del Pool",
@@ -192,7 +236,7 @@ export default function AdminIPPoolsPage() {
       title: "Rango de IPs",
       dataIndex: "rango_ip",
       key: "rango_ip",
-      render: (rango_ip) => <span>{rango_ip}</span>, // Muestra el rango de IPs
+      render: (rango_ip) => <span>{rango_ip}</span>,
     },
     {
       title: "Estado",
@@ -211,17 +255,17 @@ export default function AdminIPPoolsPage() {
             icon={<EditOutlined />}
             style={{ border: "1px solid #ff4d4f", color: "#ff4d4f" }}
             onClick={() => {
-              setEditingIPPool(record); // Establecer el IP Pool a editar
-              form.setFieldsValue(record); // Llenar el formulario con los datos del IP Pool
-              setIsModalOpen(true); // Abrir el modal de edición
+              setEditingIPPool(record);
+              form.setFieldsValue(record);
+              setIsModalOpen(true);
             }}
           />
           <Button
             icon={<DeleteOutlined />}
             danger
             onClick={() => {
-              setDeletingIPPool(record); // Establecer el IP Pool a eliminar
-              setIsDeleteModalOpen(true); // Abrir el modal de confirmación
+              setDeletingIPPool(record);
+              setIsDeleteModalOpen(true);
             }}
           />
           {record.estado_mikrotik === "No Existe" && (
@@ -269,6 +313,56 @@ export default function AdminIPPoolsPage() {
         />
       )}
 
+      {/* Alerta si hay pools no registrados en MikroTik */}
+      {poolsNoRegistrados.length > 0 && (
+        <Alert
+          style={{ marginBottom: "24px" }}
+          type="warning"
+          showIcon
+          closable
+          message="Se detectaron rangos de IP disponibles que aún no han sido registrados en el sistema."
+          description={
+            <div>
+              {poolsNoRegistrados.map((pool, index) => (
+                <div key={index}>
+                  <strong>Router:</strong> {pool.router} |{" "}
+                  <strong>Pool:</strong> {pool.nombre_pool} |{" "}
+                  <strong>Rango:</strong> {pool.rango_ip}
+                </div>
+              ))}
+              <Button
+                type="primary"
+                icon={<CloudDownloadOutlined />}
+                onClick={() => setIsImportModalOpen(true)}
+                style={{ marginTop: "12px", fontWeight: "bold", background: "#ff4d4f", color: "#fff" }}
+              >
+                Importar IP Pools
+              </Button>
+            </div>
+          }
+        />
+      )}
+
+      {/* Modal de confirmación para importar IP Pools */}
+      <Modal
+        title="Confirmar Importación"
+        open={isImportModalOpen}
+        onOk={handleImportIPPools}
+        onCancel={() => setIsImportModalOpen(false)}
+        okText="Importar"
+        cancelText="Cancelar"
+        confirmLoading={loadingImport}
+        okButtonProps={{
+          style: { backgroundColor: "#ff4d4f", borderColor: "#ff4d4f" },
+        }}
+      >
+        <p>
+          Se detectaron <strong>{poolsNoRegistrados.length}</strong> rangos de IP disponibles 
+          que aún no han sido registrados en el sistema. ¿Deseas importarlos ahora?
+        </p>
+      </Modal>
+
+      {/* Encabezado y botones */}
       <Row justify="space-between" align="middle" style={{ marginBottom: "24px" }}>
         <Col>
           <Typography.Title
@@ -280,7 +374,6 @@ export default function AdminIPPoolsPage() {
         </Col>
         <Col>
           <Space>
-            {/* Botón "Actualizar" */}
             <Button
               icon={<SyncOutlined />}
               onClick={fetchIPPools}
@@ -294,7 +387,6 @@ export default function AdminIPPoolsPage() {
             >
               Actualizar
             </Button>
-            {/* Botón "Reparar Todo" (Solo si hay pools "No Existe") */}
             {noExistePools.length > 0 && (
               <Button
                 icon={<ToolOutlined />}
@@ -304,7 +396,6 @@ export default function AdminIPPoolsPage() {
                 Reparar Todo
               </Button>
             )}
-            {/* Botón "Crear IP Pool" */}
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -407,21 +498,20 @@ export default function AdminIPPoolsPage() {
 
       {/* Modal de confirmación para eliminar */}
       <Modal
-  title="¿Estás seguro de eliminar este IP Pool?"
-  open={isDeleteModalOpen}
-  onOk={handleDelete}
-  onCancel={() => setIsDeleteModalOpen(false)}
-  okText="Eliminar"
-  cancelText="Cancelar"
-  okButtonProps={{ style: { backgroundColor: "#ff4d4f", borderColor: "#ff4d4f" } }}
->
-  <p>
-    Estás a punto de eliminar el IP Pool:{" "}
-    <strong>{deletingIPPool?.nombre_pool}</strong>. Esta acción no se puede
-    deshacer.
-  </p>
-</Modal>
-
+        title="¿Estás seguro de eliminar este IP Pool?"
+        open={isDeleteModalOpen}
+        onOk={handleDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        okText="Eliminar"
+        cancelText="Cancelar"
+        okButtonProps={{ style: { backgroundColor: "#ff4d4f", borderColor: "#ff4d4f" } }}
+      >
+        <p>
+          Estás a punto de eliminar el IP Pool:{" "}
+          <strong>{deletingIPPool?.nombre_pool}</strong>. Esta acción no se puede
+          deshacer.
+        </p>
+      </Modal>
     </div>
   );
 }

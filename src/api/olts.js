@@ -23,9 +23,8 @@ export const obtenerOLTs = async (token) => {
 // Obtener una OLT específica
 export const obtenerOLT = async (id_olt, token) => {
   try {
-    const response = await axios.post(
-      `${API_URL}/olts/obtener-olt`,
-      { id_olt }, // Se envía el ID en el cuerpo
+    const response = await axios.get(
+      `${API_URL}/olts/obtener-olt/${id_olt}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

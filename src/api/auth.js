@@ -8,11 +8,13 @@ export const login = async (email, password) => {
       correo_electronico: email,
       password,
     });
-    return response.data;
+    return response.data; // Devuelve la respuesta completa del servidor
   } catch (error) {
+    // Lanza un error con el mensaje del servidor o un mensaje genérico
     throw new Error(error.response?.data?.message || 'Error al iniciar sesión');
   }
 };
+
 
 export const logout = async (token) => {
   try {

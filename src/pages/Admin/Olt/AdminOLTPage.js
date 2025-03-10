@@ -20,6 +20,7 @@ import {
   DeleteOutlined,
   SyncOutlined,
   SearchOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import useAuth from "../../../hooks/useAuth";
 import {
@@ -29,6 +30,7 @@ import {
   eliminarOLT,
 } from "../../../api/olts";
 import { obtenerRouters } from "../../../api/routers";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 
@@ -42,6 +44,10 @@ export default function AdminOLTsPage() {
   const [editingOLT, setEditingOLT] = useState(null);
   const [form] = Form.useForm();
   const { user } = useAuth();
+
+
+  const navigate = useNavigate();
+
 
   const fetchOLTs = async () => {
     setLoading(true);
@@ -141,16 +147,6 @@ export default function AdminOLTsPage() {
       dataIndex: "ip_olt",
       key: "ip_olt",
     },
-    // {
-    //   title: "Usuario SSH",
-    //   dataIndex: "user_olt",
-    //   key: "user_olt",
-    // },
-    // {
-    //   title: "Puerto SSH",
-    //   dataIndex: "port_olt",
-    //   key: "port_olt",
-    // },
     {
       title: "Estado",
       key: "estado_olt",
@@ -163,43 +159,42 @@ export default function AdminOLTsPage() {
     {
       title: "Acciones",
       key: "acciones",
+      width: "120px", // Fijar el ancho de la columna
+      fixed: "right",
       render: (_, record) => (
-        <Space>
-          <Button
-            icon={<EditOutlined />}
+        <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
+          <EyeOutlined
+            style={{ color: "#FF4D4F", fontSize: "16px", cursor: "pointer" }}
+            onClick={() => navigate(`/admin/olts/${record.id_olt}`)}
+            
+          />
+          <EditOutlined
+            style={{ color: "#FF4D4F", fontSize: "16px", cursor: "pointer" }}
             onClick={() => {
               setEditingOLT(record);
               form.setFieldsValue(record);
               setIsModalOpen(true);
             }}
-            style={{ borderColor: "#FF4D4F", color: "#FF4D4F", background: "white" }}
           />
-          <Button
-            icon={<DeleteOutlined />}
-            danger
+          <DeleteOutlined
+            style={{ color: "#FF4D4F", fontSize: "16px", cursor: "pointer" }}
             onClick={() => handleDelete(record.id_olt)}
-            style={{ borderColor: "#FF4D4F", color: "white", background: "#FF4D4F" }}
           />
-        </Space>
+        </div>
       ),
     },
   ];
-
+  
   return (
     <div style={{ background: "#fff", padding: "16px", borderRadius: "8px" }}>
-      <Row
-        justify="space-between" align="middle" style={{ marginBottom: "24px" }}
-      >
-        <Col xs={24} sm={12}> {/* Ajuste para pantallas pequeñas */}
+      <Row justify="space-between" align="middle" style={{ marginBottom: "24px" }}>
+        <Col>
           <Typography.Title level={4} style={{ margin: 0, fontWeight: "bold", color: "#FF4D4F" }}>
             OLTs ({filteredOLTs.length})
           </Typography.Title>
         </Col>
-        <Col> {/* Ajuste para pantallas pequeñas */}
-          <Space
-            direction="horizontal" // Botones en fila en pantallas grandes
-            style={{ borderColor: "#ff4d4f", color: "#ff4d4f", fontWeight: "bold" }} // Asegurar que ocupe todo el ancho
-          >
+        <Col>
+          <Space>
             <Button
               icon={<SyncOutlined />}
               onClick={fetchOLTs}
@@ -249,7 +244,7 @@ export default function AdminOLTsPage() {
         loading={loading}
         pagination={{ pageSize: 10 }}
         bordered
-        scroll={{ x: true }} // Hacer la tabla desplazable horizontalmente en pantallas pequeñas
+        scroll={{ x: true }}
       />
 
       <Modal
@@ -262,7 +257,6 @@ export default function AdminOLTsPage() {
         onOk={() => form.submit()}
         okButtonProps={{ style: { backgroundColor: "#FF4D4F", borderColor: "#FF4D4F", color: "white" } }}
         cancelButtonProps={{ style: { borderColor: "#FF4D4F", color: "#FF4D4F" } }}
-        // width="70%" // Ajustar el ancho del modal en pantallas pequeñas
       >
         <Form form={form} layout="vertical" onFinish={handleCreateOrUpdate}>
           <Form.Item name="id_router" label="Router" rules={[{ required: true }]}>
@@ -294,6 +288,23 @@ export default function AdminOLTsPage() {
           </Form.Item>
         </Form>
       </Modal>
+
+        {/* Estilos responsivos */}
+        <style>
+        {`
+          @media (max-width: 768px) {
+            .row-header {
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 16px;
+            }
+            .row-header .ant-space {
+              width: 100%;
+              justify-content: flex-start;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }

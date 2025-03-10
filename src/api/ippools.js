@@ -15,6 +15,53 @@ export const listarIPPools = async (token) => {
     }
 };
 
+// Verificar si hay IP Pools en MikroTik que no están en la base de datos
+export const verificarIPPoolsEnMikrotik = async (token) => {
+    try {
+        const response = await axios.get(`${API_URL}/ippools/verificar`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || "Error al verificar IP Pools en MikroTik.");
+    }
+};
+
+export const importarIPPools = async (token) => {
+    try {
+        const response = await axios.post(
+            `${process.env.REACT_APP_API_URL}/ippools/importar`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error al importar IP Pools desde MikroTik:", error);
+        return { success: false, message: "Error al importar IP Pools." };
+    }
+};
+
+
+export const mostrarIPPool = async (token, id) => {
+    try {
+        const response = await axios.get(`${API_URL}/ippools/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || "Error al obtener el IP Pool.");
+    }
+};
+
+
 export const crearIPPool = async (token, data) => {
     try {
         const response = await axios.post(`${API_URL}/ippools`, data, {

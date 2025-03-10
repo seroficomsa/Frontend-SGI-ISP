@@ -6,11 +6,16 @@ import {
   LockOutlined,
   EyeInvisibleOutlined,
   EyeTwoTone,
+  LoginOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import useAuth from "../../hooks/useAuth";
 import { login as apiLogin } from "../../api/auth";
 
 import iconLogo from "../../assets/img/logos/robot.png";
+
+
+import "./LoginPage.css";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -19,6 +24,10 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false); // Estado para el loading
   const { user, login } = useAuth();
   const navigate = useNavigate();
+
+   useEffect(() => {
+      document.title = "Admin - Login | Seroficom";
+    }, []);
 
   useEffect(() => {
     if (user && user.user) {
@@ -51,9 +60,9 @@ const LoginPage = () => {
     try {
       const response = await apiLogin(email, password);
       const userData = response.data;
-
+  
       login(userData);
-
+  
       switch (userData.user.prefix_rol) {
         case "ADMIN":
           navigate("/admin");
@@ -71,13 +80,15 @@ const LoginPage = () => {
           navigate("/login");
       }
     } catch (err) {
-      setError(
-        "Error con la comunicación del servidor. Por favor, contacta con un administrador."
-      );
+      // Mostrar el mensaje de error que viene del servidor
+      setError(err.message || "Error con la comunicación del servidor. Por favor, contacta con un administrador.");
     } finally {
       setLoading(false); // Desactivar loading
     }
   };
+
+  const spinIcon = <LoadingOutlined style={{ fontSize: 24, color: "#ff4d4f" }} spin />;
+
 
   return (
     <div className="flex min-h-screen font-roboto bg-gray-100">
@@ -89,6 +100,11 @@ const LoginPage = () => {
           className="object-cover w-full h-full"
         />
         <div className="absolute inset-0 bg-red-500 opacity-50"></div>
+        {/* Texto SEROFICOM */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-white text-6xl font-bold">SEROFICOM</span>
+          <span className="text-white text-lg mt-2">TU CONEXIÓN DE CONFIANZA</span>
+        </div>
       </div>
 
       {/* Formulario */}
@@ -96,7 +112,7 @@ const LoginPage = () => {
         <div className="w-full max-w-lg p-10 bg-white rounded-xl shadow-lg">
           {/* Encabezado */}
           <div className="flex flex-col items-center mb-6">
-            <img src={iconLogo} alt="Logo" className="h-28 mb-3" />
+            <img src={iconLogo} alt="Logo" className="h-32 mb-3" />
             <Typography.Title level={2} className="text-gray-800">
               Bienvenido!
             </Typography.Title>
@@ -120,7 +136,7 @@ const LoginPage = () => {
             />
           )}
           {/* Formulario */}
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor="email"
@@ -162,26 +178,30 @@ const LoginPage = () => {
               />
             </div>
             <Button
-              type="primary"
+              type="default"
               htmlType="submit"
-              disabled={loading} // Deshabilita el botón mientras carga
-              className="w-full h-12 text-white font-semibold"
+              disabled={loading}
+              className="w-full h-12 font-semibold flex items-center justify-center"
               style={{
-                backgroundColor: "red", // Botón rojo
-                border: "none",
+                backgroundColor: "transparent",
+                color: "#ff4d4f",
                 borderRadius: "8px",
+                border: "2px solid #ff4d4f",
+                transition: "all 0.3s ease-in-out",
               }}
             >
               {loading ? (
-                <Spin
-                  style={{
-                    color: "white", // Spin rojo
-                  }}
-                />
+                <Spin indicator={spinIcon} />
               ) : (
-                "Iniciar Sesión"
+                <>
+                  <LoginOutlined style={{ marginRight: "8px" }} />
+                  Iniciar Sesión
+                </>
               )}
             </Button>
+            <div className="version-text">
+              V1.0.0-BETA
+            </div>
           </form>
         </div>
       </div>

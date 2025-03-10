@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Typography,
-  Tabs,
   Form,
   Input,
   Button,
@@ -28,11 +27,10 @@ import { crearCliente, verificarCorreo } from "../../../api/clients";
 import { listarPlanes } from "../../../api/plans";
 import { listarIPPools } from "../../../api/ippools";
 import { obtenerRouters } from "../../../api/routers";
-import { obtenerOnts } from "../../../api/onts"; // Nueva función para obtener ONTs
+import { obtenerOnts } from "../../../api/onts";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
 
-const { TabPane } = Tabs;
 const { Option } = Select;
 
 export default function CrearClientePage() {
@@ -49,11 +47,11 @@ export default function CrearClientePage() {
   const [routers, setRouters] = useState([]);
   const [planes, setPlanes] = useState([]);
   const [ippools, setIPPools] = useState([]);
-  const [onts, setOnts] = useState([]); // Nuevo estado para ONTs
+  const [onts, setOnts] = useState([]);
   const [loadingRouters, setLoadingRouters] = useState(false);
   const [loadingPlanes, setLoadingPlanes] = useState(false);
   const [loadingIPPools, setLoadingIPPools] = useState(false);
-  const [loadingOnts, setLoadingOnts] = useState(false); // Estado de carga para ONTs
+  const [loadingOnts, setLoadingOnts] = useState(false);
 
   // Filtrados
   const [filteredPlanes, setFilteredPlanes] = useState([]);
@@ -61,8 +59,6 @@ export default function CrearClientePage() {
 
   // Router seleccionado
   const [selectedRouter, setSelectedRouter] = useState(null);
-  // Tab activo
-  const [activeTab, setActiveTab] = useState("1");
 
   // Almacenar credenciales PPPoE + Info ONT
   const [pppoeCreds, setPppoeCreds] = useState(null);
@@ -103,7 +99,7 @@ export default function CrearClientePage() {
     try {
       await form.validateFields();
       setIsFormValid(true);
-    } catch {
+    } catch (error) {
       setIsFormValid(false);
     }
   };
@@ -158,7 +154,7 @@ export default function CrearClientePage() {
         setPppoeCreds({
           login: response.cliente.login,
           password: response.password_generada,
-          ontInfo: response.ont_registration, // <-- Aquí guardamos la info de la ONT
+          ontInfo: response.ont_registration,
         });
       } else {
         message.error(response.message || "Error al crear el cliente.");
@@ -268,313 +264,322 @@ export default function CrearClientePage() {
         Crear Cliente
       </Typography.Title>
 
+      {/* Card 1: Información Personal */}
       <Card
         style={{
           borderRadius: 8,
           boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
+          marginBottom: 16,
         }}
       >
-        {/* Spinner de creación */}
-        {loading && (
-          <div style={{ textAlign: "center", marginBottom: 16 }}>
-            <Spin tip="Creando Perfil PPPoE..." size="large" />
-          </div>
-        )}
+        <Typography.Title level={4} style={{ color: "#ff4d4f", fontWeight: "bold" }}>
+          <UserOutlined /> Información Personal
+        </Typography.Title>
+        <Form
+          form={form}
+          layout="vertical"
+          onValuesChange={handleFormChange}
+          style={{ marginTop: 16 }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Nombres"
+                name="nombres"
+                rules={[{ required: true, message: "Ingrese los nombres" }]}
+              >
+                <Input placeholder="Nombres" prefix={<UserOutlined />} />
+              </Form.Item>
+            </Col>
 
-        <Tabs activeKey={activeTab} onChange={setActiveTab}>
-          {/* TAB 1: Información Personal */}
-          <TabPane
-            key="1"
-            tab={
-              <span>
-                <UserOutlined /> Información Personal
-              </span>
-            }
-          >
-            <Form
-              form={form}
-              layout="vertical"
-              onValuesChange={handleFormChange}
-              style={{ marginTop: 16 }}
-            >
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Nombres"
-                    name="nombres"
-                    rules={[{ required: true, message: "Ingrese los nombres" }]}
-                  >
-                    <Input placeholder="Nombres" prefix={<UserOutlined />} />
-                  </Form.Item>
-                </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Apellidos"
+                name="apellidos"
+                rules={[{ required: true, message: "Ingrese los apellidos" }]}
+              >
+                <Input placeholder="Apellidos" prefix={<UserOutlined />} />
+              </Form.Item>
+            </Col>
+          </Row>
 
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Apellidos"
-                    name="apellidos"
-                    rules={[{ required: true, message: "Ingrese los apellidos" }]}
-                  >
-                    <Input placeholder="Apellidos" prefix={<UserOutlined />} />
-                  </Form.Item>
-                </Col>
-              </Row>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Fecha de Nacimiento"
+                name="fecha_nacimiento"
+                rules={[{ required: true, message: "Ingrese la fecha de nacimiento" }]}
+              >
+                <DatePicker
+                  style={{ width: "100%" }}
+                  format="YYYY-MM-DD"
+                  placeholder="Seleccione la fecha"
+                />
+              </Form.Item>
+            </Col>
 
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Fecha de Nacimiento"
-                    name="fecha_nacimiento"
-                    rules={[{ required: true, message: "Ingrese la fecha de nacimiento" }]}
-                  >
-                    <DatePicker
-                      style={{ width: "100%" }}
-                      format="YYYY-MM-DD"
-                      placeholder="Seleccione la fecha"
-                    />
-                  </Form.Item>
-                </Col>
-
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Cédula o Identificación"
-                    name="identificacion"
-                    rules={[
-                      { required: true, message: "Ingrese la cédula o identificación" },
-                      { pattern: /^\d{10}$/, message: "La cédula debe tener 10 dígitos" },
-                    ]}
-                  >
-                    <Input maxLength={10} placeholder="Cédula o Identificación" />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Form>
-          </TabPane>
-
-          {/* TAB 2: Información de Contacto */}
-          <TabPane
-            key="2"
-            tab={
-              <span>
-                <PhoneOutlined /> Información de Contacto
-              </span>
-            }
-          >
-            {correoValido === false && (
-              <Alert
-                message="El correo electrónico ya está registrado."
-                type="error"
-                showIcon
-                style={{ marginBottom: 16 }}
-              />
-            )}
-            <Form
-              form={form}
-              layout="vertical"
-              onValuesChange={handleFormChange}
-              style={{ marginTop: 16 }}
-            >
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Correo Electrónico"
-                    name="correo_electronico"
-                    rules={[
-                      { required: true, type: "email", message: "Ingrese un correo electrónico válido" },
-                    ]}
-                  >
-                    <Input
-                      placeholder="Correo Electrónico"
-                      prefix={<MailOutlined />}
-                      onBlur={(e) => handleCorreoBlur(e.target.value)}
-                    />
-                  </Form.Item>
-                </Col>
-
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Teléfono Principal"
-                    name="telefono_principal"
-                    rules={[
-                      { required: true, message: "Ingrese el teléfono principal" },
-                      { pattern: /^09\d{8}$/, message: "Debe comenzar con 09 y tener 10 dígitos" },
-                    ]}
-                  >
-                    <Input maxLength={10} placeholder="Teléfono Principal" prefix={<PhoneOutlined />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Teléfono Secundario (opcional)"
-                    name="telefono_secundario"
-                    rules={[
-                      { pattern: /^09\d{8}$/, message: "Debe comenzar con 09 y tener 10 dígitos" },
-                    ]}
-                  >
-                    <Input maxLength={10} placeholder="Teléfono Secundario" prefix={<PhoneOutlined />} />
-                  </Form.Item>
-                </Col>
-
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Dirección"
-                    name="direccion"
-                    rules={[{ required: true, message: "Ingrese la dirección" }]}
-                  >
-                    <Input.TextArea rows={3} placeholder="Dirección" prefix={<EnvironmentOutlined />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Form.Item label="Referencia de Dirección (opcional)" name="referencia_direccion">
-                    <Input.TextArea rows={2} placeholder="Referencia" />
-                  </Form.Item>
-                </Col>
-
-                <Col xs={24} sm={12} md={6}>
-                  <Form.Item label="Latitud (opcional)" name="latitud">
-                    <Input placeholder="Latitud" />
-                  </Form.Item>
-                </Col>
-
-                <Col xs={24} sm={12} md={6}>
-                  <Form.Item label="Longitud (opcional)" name="longitud">
-                    <Input placeholder="Longitud" />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Form>
-          </TabPane>
-
-          {/* TAB 3: Asignación de Servicio */}
-          <TabPane
-            key="3"
-            tab={
-              <span>
-                <SolutionOutlined /> Asignación de Servicio
-              </span>
-            }
-          >
-            <Form
-              form={form}
-              layout="vertical"
-              onValuesChange={handleFormChange}
-              style={{ marginTop: 16 }}
-            >
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Seleccionar Router"
-                    name="id_router"
-                    rules={[{ required: true, message: "Seleccione un router" }]}
-                  >
-                    <Select
-                      placeholder="Seleccione un router"
-                      loading={loadingRouters}
-                      onChange={handleRouterChange}
-                    >
-                      {routers.map((router) => (
-                        <Option key={router.id_router} value={router.id_router}>
-                          {router.nombre_router} ({router.descripcion_router})
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Seleccionar Plan"
-                    name="id_plan"
-                    rules={[{ required: true, message: "Seleccione un plan" }]}
-                  >
-                    <Select
-                      placeholder="Seleccione un plan"
-                      loading={loadingPlanes}
-                      disabled={!selectedRouter}
-                    >
-                      {filteredPlanes.map((plan) => (
-                        <Option key={plan.id_plan} value={plan.id_plan}>
-                          {plan.nombre_plan} - ${plan.precio}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Seleccionar IP Pool"
-                    name="id_ippool"
-                    rules={[{ required: true, message: "Seleccione un IP Pool" }]}
-                  >
-                    <Select
-                      placeholder="Seleccione un IP Pool"
-                      loading={loadingIPPools}
-                      disabled={!selectedRouter}
-                    >
-                      {filteredIPPools.map((ippool) => (
-                        <Option key={ippool.id_ippool} value={ippool.id_ippool}>
-                          {ippool.nombre_pool} - {ippool.subnet}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label="Seleccionar ONT"
-                    name="id_ont"
-                    rules={[{ required: true, message: "Seleccione una ONT" }]}
-                  >
-                    <Select
-                      placeholder="Seleccione una ONT"
-                      loading={loadingOnts}
-                      showSearch
-                      optionFilterProp="children"
-                      filterOption={(input, option) =>
-                        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                      }
-                    >
-                      {onts.map((ont) => (
-                        <Option key={ont.id_ont} value={ont.id_ont}>
-                          {ont.modelo} - {ont.sn}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Form>
-          </TabPane>
-        </Tabs>
-
-        {/* Botón para crear cliente => solo si el form es válido */}
-        <div style={{ textAlign: "center", marginTop: 24 }}>
-          <Button
-            onClick={handleSubmit}
-            disabled={!isFormValid}
-            loading={loading}
-            style={{
-              backgroundColor: "#ff4d4f",
-              borderColor: "#ff4d4f",
-              color: "#fff",
-              fontWeight: "bold",
-              borderRadius: 8,
-              width: 180,
-            }}
-          >
-            Crear Cliente
-          </Button>
-        </div>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Cédula o Identificación"
+                name="identificacion"
+                rules={[
+                  { required: true, message: "Ingrese la cédula o identificación" },
+                  { pattern: /^\d{10}$/, message: "La cédula debe tener 10 dígitos" },
+                ]}
+              >
+                <Input maxLength={10} placeholder="Cédula o Identificación" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
       </Card>
+
+      {/* Card 2: Información de Contacto */}
+      <Card
+        style={{
+          borderRadius: 8,
+          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
+          marginBottom: 16,
+        }}
+      >
+        <Typography.Title level={4} style={{ color: "#ff4d4f", fontWeight: "bold" }}>
+          <PhoneOutlined /> Información de Contacto
+        </Typography.Title>
+        {correoValido === false && (
+          <Alert
+            message="El correo electrónico ya está registrado."
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        <Form
+          form={form}
+          layout="vertical"
+          onValuesChange={handleFormChange}
+          style={{ marginTop: 16 }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Correo Electrónico"
+                name="correo_electronico"
+                rules={[
+                  { required: true, type: "email", message: "Ingrese un correo electrónico válido" },
+                ]}
+              >
+                <Input
+                  placeholder="Correo Electrónico"
+                  prefix={<MailOutlined />}
+                  onBlur={(e) => handleCorreoBlur(e.target.value)}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Teléfono Principal"
+                name="telefono_principal"
+                rules={[
+                  { required: true, message: "Ingrese el teléfono principal" },
+                  { pattern: /^09\d{8}$/, message: "Debe comenzar con 09 y tener 10 dígitos" },
+                ]}
+              >
+                <Input maxLength={10} placeholder="Teléfono Principal" prefix={<PhoneOutlined />} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Teléfono Secundario (opcional)"
+                name="telefono_secundario"
+                rules={[
+                  { pattern: /^09\d{8}$/, message: "Debe comenzar con 09 y tener 10 dígitos" },
+                ]}
+              >
+                <Input maxLength={10} placeholder="Teléfono Secundario" prefix={<PhoneOutlined />} />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Dirección"
+                name="direccion"
+                rules={[{ required: true, message: "Ingrese la dirección" }]}
+              >
+                <Input.TextArea rows={3} placeholder="Dirección" prefix={<EnvironmentOutlined />} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item label="Referencia de Dirección (opcional)" name="referencia_direccion">
+                <Input.TextArea rows={2} placeholder="Referencia" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item label="Latitud (opcional)" name="latitud">
+                <Input placeholder="Latitud" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item label="Longitud (opcional)" name="longitud">
+                <Input placeholder="Longitud" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Card>
+
+      {/* Card 3: Asignación de Servicio */}
+      <Card
+        style={{
+          borderRadius: 8,
+          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
+          marginBottom: 16,
+        }}
+      >
+        <Typography.Title level={4} style={{ color: "#ff4d4f", fontWeight: "bold" }}>
+          <SolutionOutlined /> Asignación de Servicio
+        </Typography.Title>
+        <Form
+          form={form}
+          layout="vertical"
+          onValuesChange={handleFormChange}
+          style={{ marginTop: 16 }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Seleccionar Router"
+                name="id_router"
+                rules={[{ required: true, message: "Seleccione un router" }]}
+              >
+                <Select
+                  placeholder="Seleccione un router"
+                  loading={loadingRouters}
+                  onChange={handleRouterChange}
+                >
+                  {routers.map((router) => (
+                    <Option key={router.id_router} value={router.id_router}>
+                      {router.nombre_router} ({router.descripcion_router})
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Seleccionar Plan"
+                name="id_plan"
+                rules={[{ required: true, message: "Seleccione un plan" }]}
+              >
+                <Select
+                  placeholder="Seleccione un plan"
+                  loading={loadingPlanes}
+                  disabled={!selectedRouter}
+                >
+                  {filteredPlanes.map((plan) => (
+                    <Option key={plan.id_plan} value={plan.id_plan}>
+                      {plan.nombre_plan} - ${plan.precio}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Seleccionar IP Pool"
+                name="id_ippool"
+                rules={[{ required: true, message: "Seleccione un IP Pool" }]}
+              >
+                <Select
+                  placeholder="Seleccione un IP Pool"
+                  loading={loadingIPPools}
+                  disabled={!selectedRouter}
+                >
+                  {filteredIPPools.map((ippool) => (
+                    <Option key={ippool.id_ippool} value={ippool.id_ippool}>
+                      {ippool.nombre_pool} - {ippool.subnet}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Seleccionar ONT"
+                name="id_ont"
+                rules={[{ required: true, message: "Seleccione una ONT" }]}
+              >
+                <Select
+                  placeholder="Seleccione una ONT"
+                  loading={loadingOnts}
+                  showSearch
+                  optionFilterProp="label"
+                  filterOption={(input, option) =>
+                    option.label.toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {onts.map((ont) => (
+                    <Option
+                      key={ont.id_ont}
+                      value={ont.id_ont}
+                      label={`${ont.modelo} - ${ont.sn} - ${ont.gpon_sn}`}
+                    >
+                      {ont.modelo} - {ont.gpon_sn}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+            </Col>
+          </Row>
+        </Form>
+      </Card>
+
+      {/* Botones de acción */}
+      <div style={{ textAlign: "center", marginTop: 24 }}>
+        <Button
+          onClick={() => navigate("/admin/clientes")}
+          style={{
+            backgroundColor: "#ccc",
+            borderColor: "#ccc",
+            color: "#fff",
+            borderRadius: 8,
+            fontWeight: "bold",
+            width: 180,
+            marginRight: 16,
+          }}
+        >
+          Cancelar
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          disabled={!isFormValid || correoValido === false}
+          loading={loading}
+          style={{
+            backgroundColor: "#ff4d4f",
+            borderColor: "#ff4d4f",
+            color: "#fff",
+            fontWeight: "bold",
+            borderRadius: 8,
+            width: 180,
+          }}
+        >
+          Crear Cliente
+        </Button>
+      </div>
     </div>
   );
 }

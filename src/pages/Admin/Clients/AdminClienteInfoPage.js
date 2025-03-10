@@ -69,11 +69,11 @@ export default function AdminClienteInfoPage() {
     const rxValue = parseFloat(rxPower);
 
     if (rxValue > -1) {
-      return <Alert message="⚠ Potencia extremadamente alta, revisar urgentemente" type="error" showIcon />;
+      return <Alert message="Potencia extremadamente alta, revisar urgentemente" type="error" showIcon />;
     } else if (rxValue > -15) {
-      return <Alert message="⚠ Potencia demasiado alta, revisar configuración" type="warning" showIcon />;
+      return <Alert message="Potencia demasiado alta, revisar configuración" type="warning" showIcon />;
     } else if (rxValue >= -26) {
-      return <Alert message="✅ Potencia Óptima" type="success" showIcon />;
+      return <Alert message="Potencia Óptima" type="success" showIcon />;
     } else {
       return <Alert message="⚠ ALERTA: Potencia fuera del estándar, verificar urgentemente" type="error" showIcon />;
     }
@@ -84,9 +84,9 @@ export default function AdminClienteInfoPage() {
       {/* 📌 Encabezado con Botón de Retroceder y Actualizar */}
       <Row justify="space-between" align="middle" style={{ marginBottom: "16px", display: "flex", flexWrap: "nowrap" }}>
         <Col>
-          <Button 
-            type="text" 
-            icon={<ArrowLeftOutlined />} 
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
             onClick={() => navigate(-1)}
             style={{ fontSize: "16px", color: "#F5222D" }}
           >
@@ -99,94 +99,88 @@ export default function AdminClienteInfoPage() {
           </Typography.Title>
         </Col>
         <Col>
-          <Button 
-            type="primary" 
-            onClick={fetchClienteInfo} 
-            icon={<SyncOutlined />} 
+          <Button
+            type="primary"
+            onClick={fetchClienteInfo}
+            icon={<SyncOutlined />}
             style={{ background: "#F5222D", borderColor: "#F5222D" }}>
             Actualizar
           </Button>
         </Col>
       </Row>
 
-      {/* 📌 Información del Cliente */}
-      <Card
-        title={<><UserOutlined /> Cliente</>}
-        bordered={false}
-        style={{ borderRadius: "12px", marginBottom: "16px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)" }}
-      >
-        {loading ? (
-          <Skeleton active />
-        ) : (
-          <Space direction="vertical" size="middle">
-            <Typography.Text><strong>Nombre:</strong> {cliente.nombres} {cliente.apellidos}</Typography.Text>
-            <Typography.Text><strong>Cédula:</strong> {cliente.identificacion}</Typography.Text>
-            <Typography.Text><strong>Correo:</strong> {cliente.correo_electronico}</Typography.Text>
-            <Typography.Text><strong>Teléfono:</strong> {cliente.informacion_adicional?.telefono_principal || "No registrado"}</Typography.Text>
-            <Typography.Text>
-              <strong>Estado:</strong>  
-              <Tag color={cliente.estado === "A" ? "green" : "red"}>
-                {cliente.estado === "A" ? "Activo" : "Inactivo"}
-              </Tag>
-            </Typography.Text>
-          </Space>
-        )}
-      </Card>
+      {/* 📌 Diseño Responsivo con Grid */}
+      <Row gutter={[16, 16]}>
+        {/* 📌 Columna Izquierda en PC - Cliente & Plan */}
+        <Col xs={24} md={12}>
+          {/* 📌 Información del Cliente */}
+          <Card title={<><UserOutlined /> Cliente</>} bordered={false} style={{ borderRadius: "12px", marginBottom: "16px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)" }}>
+            {loading ? (
+              <Skeleton active />
+            ) : (
+              <Space direction="vertical" size="middle">
+                <Typography.Text><strong>Nombre:</strong> {cliente.nombres} {cliente.apellidos}</Typography.Text>
+                <Typography.Text><strong>Cédula:</strong> {cliente.identificacion}</Typography.Text>
+                <Typography.Text><strong>Correo:</strong> {cliente.correo_electronico}</Typography.Text>
+                <Typography.Text><strong>Teléfono:</strong> {cliente.informacion_adicional?.telefono_principal || "No registrado"}</Typography.Text>
+                <Typography.Text>
+                  <strong>Estado:</strong>
+                  <Tag color={cliente.estado === "A" ? "green" : "red"}>
+                    {cliente.estado === "A" ? "Activo" : "Inactivo"}
+                  </Tag>
+                </Typography.Text>
+              </Space>
+            )}
+          </Card>
 
-      {/* 📌 Plan Contratado */}
-      <Card
-        title={<><ShoppingCartOutlined /> Plan Contratado</>}
-        bordered={false}
-        style={{ borderRadius: "12px", marginBottom: "16px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)" }}
-      >
-        {loading ? (
-          <Skeleton active />
-        ) : plan ? (
-          <>
-            <Typography.Text><strong>Plan:</strong> {plan.nombre_plan}</Typography.Text><br />
-            <Typography.Text><strong>Velocidad Subida:</strong> {plan.mb_subida} Mbps</Typography.Text><br />
-            <Typography.Text><strong>Velocidad Bajada:</strong> {plan.mb_bajada} Mbps</Typography.Text><br />
-            <Typography.Text><strong>Precio:</strong> ${plan.precio}</Typography.Text>
-          </>
-        ) : (
-          <Typography.Text>Este cliente no tiene un plan asignado.</Typography.Text>
-        )}
-      </Card>
+          {/* 📌 Plan Contratado */}
+          <Card title={<><ShoppingCartOutlined /> Plan Contratado</>} bordered={false} style={{ borderRadius: "12px", marginBottom: "16px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)" }}>
+            {loading ? (
+              <Skeleton active />
+            ) : plan ? (
+              <>
+                <Typography.Text><strong>Plan:</strong> {plan.nombre_plan}</Typography.Text><br />
+                <Typography.Text><strong>Velocidad Subida:</strong> {plan.mb_subida} Mbps</Typography.Text><br />
+                <Typography.Text><strong>Velocidad Bajada:</strong> {plan.mb_bajada} Mbps</Typography.Text><br />
+                <Typography.Text><strong>Precio:</strong> ${plan.precio}</Typography.Text>
+              </>
+            ) : (
+              <Typography.Text>Este cliente no tiene un plan asignado.</Typography.Text>
+            )}
+          </Card>
+        </Col>
 
-      {/* 📌 Información de la ONT */}
-      <Card
-        title={<><WifiOutlined /> Información de la ONT</>}
-        bordered={false}
-        style={{ borderRadius: "12px", marginBottom: "16px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)" }}
-      >
-        {loading ? (
-          <Skeleton active />
-        ) : ontInfo ? (
-          <>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
-              <Image
-                width={120}
-                height="auto"
-                src={ontTPLink} 
-                alt="ONT Device"
-                preview={false}
-                style={{ borderRadius: "8px" }}
-              />
-            </div>
-            <Space direction="vertical" size="middle">
-              <Typography.Text><strong>GPON Serial:</strong> {ontInfo.gpon_serial}</Typography.Text>
-              <Typography.Text><strong>PON ID:</strong> {ontInfo.pon_port}</Typography.Text>
-              <Typography.Text><strong>ONU ID:</strong> {ontInfo.onu_id}</Typography.Text>
-              <Typography.Text><strong>Estado:</strong> {ontInfo.online_status}</Typography.Text>
-              <Typography.Text><strong>Potencia RX:</strong> {ontInfo.rx_power} dBm</Typography.Text>
-              <Typography.Text><strong>Potencia TX:</strong> {ontInfo.tx_power} dBm</Typography.Text>
-              {getPotenciaRxMessage(ontInfo.rx_power)}
-            </Space>
-          </>
-        ) : (
-          <Typography.Text>Este cliente no tiene ONT asignada.</Typography.Text>
-        )}
-      </Card>
+        {/* 📌 Columna Derecha en PC - ONT */}
+        <Col xs={24} md={12}>
+          <Card title={<><WifiOutlined /> Información de la ONT</>} bordered={false} style={{ borderRadius: "12px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)" }}>
+            {loading ? (
+              <Skeleton active />
+            ) : ontInfo ? (
+              <>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+                  <Image width={120} height="auto" src={ontTPLink} alt="ONT Device" preview={false} style={{ borderRadius: "8px" }} />
+                </div>
+                <Space direction="vertical" size="middle">
+                  <Typography.Text><strong>GPON Serial:</strong> {ontInfo.gpon_serial}</Typography.Text>
+                  <Typography.Text><strong>PON ID:</strong> {ontInfo.pon_port}</Typography.Text>
+                  <Typography.Text><strong>ONU ID:</strong> {ontInfo.onu_id}</Typography.Text>
+                  <Typography.Text>
+                    <strong>Estado:</strong>
+                    <Tag color={ontInfo.online_status === "online" ? "green" : "red"}>
+                      {ontInfo.online_status === "online" ? "Activo" : "Inactivo"}
+                    </Tag>
+                  </Typography.Text>
+                  <Typography.Text><strong>Potencia RX:</strong> {ontInfo.rx_power} dBm</Typography.Text>
+                  <Typography.Text><strong>Potencia TX:</strong> {ontInfo.tx_power} dBm</Typography.Text>
+                  {getPotenciaRxMessage(ontInfo.rx_power)}
+                </Space>
+              </>
+            ) : (
+              <Typography.Text>Este cliente no tiene ONT asignada.</Typography.Text>
+            )}
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }

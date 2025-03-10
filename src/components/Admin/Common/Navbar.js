@@ -33,7 +33,7 @@ export default function Navbar({ setCollapsed, collapsed }) {
         padding: "8px",
       }}
     >
-      <Menu.Item
+      {/* <Menu.Item
         key="1"
         icon={<Icon name="UserOutlined" style={{ fontSize: "16px", marginRight: "8px" }} />}
         style={{
@@ -42,8 +42,8 @@ export default function Navbar({ setCollapsed, collapsed }) {
         }}
       >
         Mi Perfil
-      </Menu.Item>
-      <Menu.Item
+      </Menu.Item> */}
+      {/* <Menu.Item
         key="2"
         icon={<Icon name="SettingOutlined" style={{ fontSize: "16px", marginRight: "8px" }} />}
         style={{
@@ -52,8 +52,8 @@ export default function Navbar({ setCollapsed, collapsed }) {
         }}
       >
         Configuración
-      </Menu.Item>
-      <Divider style={{ margin: "8px 0" }} />
+      </Menu.Item> */}
+      {/* <Divider style={{ margin: "8px 0" }} /> */}
       <Menu.Item
         key="3"
         icon={<Icon name="LogoutOutlined" style={{ fontSize: "16px", marginRight: "8px", color: "red" }} />}
